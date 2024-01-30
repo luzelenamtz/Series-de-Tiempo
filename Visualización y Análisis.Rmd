@@ -1,0 +1,103 @@
+---
+title: "Visualización y Análisis"
+output: html_document
+date: "2024-01-30"
+---
+
+```{r}
+library (tidyverse)
+library(fable)
+library (tsibble)
+library(readxl)
+library (readr)
+library(ggplot2)
+```
+
+```{r}
+ADA_USD <- read_csv("ITESO/Series de Tiempo/ADA-USD.csv")
+ADA_USD
+AVAX_USD <- read_csv("ITESO/Series de Tiempo/AVAX-USD.csv")
+AVAX_USD
+BTC_USD <- read_csv("ITESO/Series de Tiempo/BTC-USD.csv")
+BTC_USD
+DOGE_USD <- read_csv("ITESO/Series de Tiempo/DOGE-USD.csv")
+DOGE_USD
+DOT_USD <- read_csv("ITESO/Series de Tiempo/DOT-USD.csv")
+DOT_USD
+ETH_USD <- read_csv("ITESO/Series de Tiempo/ETH-USD.csv")
+ETH_USD
+LUNA20314_USD <- read_csv("ITESO/Series de Tiempo/LUNA20314-USD.csv")
+LUNA20314_USD
+SOL_USD <- read_csv("ITESO/Series de Tiempo/SOL-USD.csv")
+SOL_USD
+
+```
+
+```{r}
+ADA_USD_tidy <- ADA_USD %>%
+  as_tsibble(index = Date)
+ADA_USD_tidy
+
+AVAX_USD_tidy <- AVAX_USD %>%
+  as_tsibble(index = Date)
+AVAX_USD_tidy
+
+BTC_USD_tidy <- BTC_USD %>%
+  as_tsibble(index = Date)
+BTC_USD_tidy
+
+DOGE_USD_tidy <- DOGE_USD %>%
+  as_tsibble(index = Date)
+DOGE_USD_tidy
+
+DOT_USD_tidy <- DOT_USD %>%
+  as_tsibble(index = Date)
+DOT_USD_tidy
+
+ETH_USD_tidy <- ETH_USD %>%
+  as_tsibble(index = Date)
+ETH_USD_tidy
+
+LUNA20314_USD_tidy <- LUNA20314_USD %>%
+  as_tsibble(index = Date)
+LUNA20314_USD_tidy
+
+SOL_USD_tidy <- SOL_USD %>%
+  as_tsibble(index = Date)
+SOL_USD_tidy
+
+```
+
+
+```{r}
+ADA_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+AVAX_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+BTC_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+DOT_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+ETH_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+LUNA20314_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+SOL_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "Cost", title = "Ada cost value")
+
+```
+
+
