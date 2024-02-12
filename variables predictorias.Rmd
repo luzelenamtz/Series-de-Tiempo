@@ -1,0 +1,141 @@
+---
+title: "Variables Predictorias"
+author: "Elena"
+date: "2024-02-12"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(tsibble)
+library(plotly)
+library(lubridate)
+library(readr)
+```
+
+El Bitcoin es una moneda electrónica que no está respaldada por un banco, un gobierno o algo material como lo es el oro, esto genera un desafío para el sistema financiero tradicional, sin embargo, la sociedad ha comenzado a invertir en bitcoins, esta moneda es altamente volátil, esto puede representar oportunidades o riesgos muy significativos para los inversionistas, también se considera una forma de diversificación, existe quien lo ve como una moneda fiduciaria en especial quien vive en regiones con problemas de inflación o inestabilidad financiera.
+
+El como se desarrolla el Bitcoin o las cripto monedas pronostica también un desarrollo tecnológico para el sistema financiero tradicional, y el comportamiento de la sociedad ante el como se utiliza el dinero, sus inversiones, o ahorros. Por esto veo importante pronosticar la volatilidad, así como el volumen histórico.
+
+Después de importar las librerías, voy a comenzar leyendo los archivos de criptomonedas para el "Análisis de eficiencia del mercado de Bitcoin".
+```{r}
+ADA_USD <- read_csv("ITESO/Series de Tiempo/ADA-USD.csv")
+ADA_USD
+AVAX_USD <- read_csv("ITESO/Series de Tiempo/AVAX-USD.csv")
+AVAX_USD
+BTC_USD <- read_csv("ITESO/Series de Tiempo/BTC-USD.csv")
+BTC_USD
+DOGE_USD <- read_csv("ITESO/Series de Tiempo/DOGE-USD.csv")
+DOGE_USD
+DOT_USD <- read_csv("ITESO/Series de Tiempo/DOT-USD.csv")
+DOT_USD
+ETH_USD <- read_csv("ITESO/Series de Tiempo/ETH-USD.csv")
+ETH_USD
+LUNA20314_USD <- read_csv("ITESO/Series de Tiempo/LUNA20314-USD.csv")
+LUNA20314_USD
+SOL_USD <- read_csv("ITESO/Series de Tiempo/SOL-USD.csv")
+SOL_USD
+```
+
+```{r}
+ADA_USD_tidy <- ADA_USD %>%
+  as_tsibble(index = Date)
+ADA_USD_tidy
+
+AVAX_USD_tidy <- AVAX_USD %>%
+  as_tsibble(index = Date)
+AVAX_USD_tidy
+
+BTC_USD_tidy <- BTC_USD %>%
+  as_tsibble(index = Date)
+BTC_USD_tidy
+
+DOGE_USD_tidy <- DOGE_USD %>%
+  as_tsibble(index = Date)
+DOGE_USD_tidy
+
+DOT_USD_tidy <- DOT_USD %>%
+  as_tsibble(index = Date)
+DOT_USD_tidy
+
+ETH_USD_tidy <- ETH_USD %>%
+  as_tsibble(index = Date)
+ETH_USD_tidy
+
+LUNA20314_USD_tidy <- LUNA20314_USD %>%
+  as_tsibble(index = Date)
+LUNA20314_USD_tidy
+
+SOL_USD_tidy <- SOL_USD %>%
+  as_tsibble(index = Date)
+SOL_USD_tidy
+```
+
+
+Como unica variable predictora que voy a escoger es el volumen.
+
+```{r}
+ADA_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "ADA volume")
+
+AVAX_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "AVAX volume")
+
+BTC_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "BTC volume")
+
+DOT_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "DOT volume")
+
+ETH_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "ETH volume")
+
+LUNA20314_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "LUNA volume")
+
+SOL_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "SOL volume")
+
+```
+
+Ahora voy a leer los archivos para la segúnda serie de tiempo sobre: "Efectos de la vacuna del COVID en el mundo"
+
+Para esta serie de tiempo quiero concentrarme en la desigualdad y el impacto en la salud pública, evaluar la eficacia de las vacunas, la eficacia de las marcas, paises que fueron vacunados primero.
+
+Más que nada creo y me gustaría comprobar una disparidad en la distribución global de las vacunas esto principalmente puedo verlo en las fechas y cantidades de vacunas.
+
+Esto puede ser útil para el análisis de una nueva formulación de políticas de salud pública y asignación de recursos
+
+```{r}
+vacunas_marca <- read_csv("ITESO/Series de Tiempo/archive/country_vaccinations_by_manufacturer.csv")
+vacunas_marca
+
+vacunas_pais <- read_csv("ITESO/Series de Tiempo/archive/country_vaccinations.csv")
+vacunas_pais
+```
+
+```{r}
+vacunas_marca_tidy %>%
+  autoplot(total_vaccinations) +
+  labs(y = "total_vaccinations", title = "Marcas")
+
+vacunas_pais_tidy %>%
+  autoplot(total_vaccinations) +
+  labs(y = "total_vaccinations", title = "Pais")
+
+
+```
+
+
+```{r}
+
+```
+
