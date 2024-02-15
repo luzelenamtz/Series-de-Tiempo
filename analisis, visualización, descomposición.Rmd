@@ -1,0 +1,219 @@
+---
+title: "Analisis, visualización y descomposición"
+author: "Elena"
+date: "2024-02-15"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(tsibble)
+library(plotly)
+library(lubridate)
+library(readr)
+library(ggplot2)
+library(feasts)
+```
+El Bitcoin es una moneda electrónica que no está respaldada por un banco, un gobierno o algo material como lo es el oro, esto genera un desafío para el sistema financiero tradicional, sin embargo, la sociedad ha comenzado a invertir en bitcoins, esta moneda es altamente volátil, esto puede representar oportunidades o riesgos muy significativos para los inversionistas, también se considera una forma de diversificación, existe quien lo ve como una moneda fiduciaria en especial quien vive en regiones con problemas de inflación o inestabilidad financiera.
+
+El como se desarrolla el Bitcoin o las cripto monedas pronostica también un desarrollo tecnológico para el sistema financiero tradicional, y el comportamiento de la sociedad ante el como se utiliza el dinero, sus inversiones, o ahorros. Por esto veo importante pronosticar la volatilidad, así como el volumen histórico.
+
+Después de importar las librerías, voy a comenzar leyendo los archivos de criptomonedas para el "Análisis de eficiencia del mercado de Bitcoin".
+
+```{r}
+ADA_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/ADA-USD.csv')
+ADA_USD
+BTC_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/BTC-USD.csv')
+BTC_USD
+DOGE_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/DOGE-USD.csv')
+DOGE_USD
+DOT_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/DOT-USD.csv')
+DOT_USD
+ETH_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/ETH-USD.csv')
+ETH_USD
+SOL_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/SOL-USD.csv')
+SOL_USD
+```
+
+
+```{r}
+ADA_USD_tidy <- ADA_USD %>%
+  as_tsibble(index = Date)
+ADA_USD_tidy
+
+BTC_USD_tidy <- BTC_USD %>%
+  as_tsibble(index = Date)
+BTC_USD_tidy
+
+DOGE_USD_tidy <- DOGE_USD %>%
+  as_tsibble(index = Date)
+DOGE_USD_tidy
+
+DOT_USD_tidy <- DOT_USD %>%
+  as_tsibble(index = Date)
+DOT_USD_tidy
+
+ETH_USD_tidy <- ETH_USD %>%
+  as_tsibble(index = Date)
+ETH_USD_tidy
+
+
+SOL_USD_tidy <- SOL_USD %>%
+  as_tsibble(index = Date)
+SOL_USD_tidy
+```
+
+Como unica variable predictora que voy a escoger es el volumen.
+
+```{r}
+ADA_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "ADA volume")
+
+BTC_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "BTC volume")
+
+DOT_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "DOT volume")
+
+ETH_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "ETH volume")
+
+SOL_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "SOL volume")
+```
+Se puede confirmar la alta volatilidad que hay en las gráficas, ahora voy a graficar de una manera distinta para presentar tendencia, estacionalidad y heteroscedasticidad (Variabilidad desigual de los errores en un modelo de regresión).
+
+```{r}
+feasts::autoplot(ADA_USD_tidy) + ggtitle('Volumen que se vende de ADA') + ylab('Volumen') + xlab('Fecha')
+
+feasts::autoplot(BTC_USD_tidy) + ggtitle('Volumen que se vende de BTC') + ylab('Volumen') + xlab('Fecha')
+
+feasts::autoplot(DOT_USD_tidy) + ggtitle('Volumen que se vende de DOT') + ylab('Volumen') + xlab('Fecha')
+
+feasts::autoplot(ETH_USD_tidy) + ggtitle('Volumen que se vende de ETH') + ylab('Volumen') + xlab('Fecha')
+
+feasts::autoplot(SOL_USD_tidy) + ggtitle('Volumen que se vende de SOL') + ylab('Volumen') + xlab('Fecha')
+
+```
+Observando las siguientes gráficas podemos ver que no hay estacionalidad, y tampoco una tendencia clara, en algunas gráficas la tendencia puede subir sin embargo, debido a la volatilidad hay fechas en las que ha estado más alto que la "posible" tendencia que pueda observarse.
+
+```{r}
+yearly_data_plot =  ADA_USD_tidy %>% gg_season(Volume, labels = "both") +
+    ggtitle('Volumen ADA') + ylab('Volumen') + xlab('Años')
+
+ggplotly(yearly_data_plot)
+
+yearly_data_plot =  BTC_USD_tidy %>% gg_season(Volume, labels = "both") +
+    ggtitle('Volumen ADA') + ylab('Volumen') + xlab('Años')
+
+ggplotly(yearly_data_plot)
+
+yearly_data_plot =  DOT_USD_tidy %>% gg_season(Volume, labels = "both") +
+    ggtitle('Volumen ADA') + ylab('Volumen') + xlab('Años')
+
+ggplotly(yearly_data_plot)
+
+yearly_data_plot =  ETH_USD_tidy %>% gg_season(Volume, labels = "both") +
+    ggtitle('Volumen ADA') + ylab('Volumen') + xlab('Años')
+
+ggplotly(yearly_data_plot)
+
+yearly_data_plot =  SOL_USD_tidy %>% gg_season(Volume, labels = "both") +
+    ggtitle('Volumen ADA') + ylab('Volumen') + xlab('Años')
+
+ggplotly(yearly_data_plot)
+
+```
+
+
+```{r}
+subseries_plot = ADA_USD_tidy %>% gg_subseries(Volume)
+ggplotly(subseries_plot)
+```
+
+```{r}
+ADA_USD_tidy %>% ACF(Volume, lag_max = 12)
+
+BTC_USD_tidy %>% ACF(Volume, lag_max = 12)
+
+DOT_USD_tidy %>% ACF(Volume, lag_max = 12)
+
+ETH_USD_tidy %>% ACF(Volume, lag_max = 12)
+
+SOL_USD_tidy %>% ACF(Volume, lag_max = 12)
+```
+
+```{r}
+ADA_USD_tidy %>% ACF(Volume, lag_max = 24) %>% autoplot() + labs(title='Volumen ADA')
+
+BTC_USD_tidy %>% ACF(Volume, lag_max = 24) %>% autoplot() + labs(title='Volumen BTC')
+
+DOT_USD_tidy %>% ACF(Volume, lag_max = 24) %>% autoplot() + labs(title='Volumen DOT')
+
+ETH_USD_tidy %>% ACF(Volume, lag_max = 24) %>% autoplot() + labs(title='Volumen ETH')
+
+SOL_USD_tidy %>% ACF(Volume, lag_max = 24) %>% autoplot() + labs(title='Volumen SOL')
+```
+
+```{r}
+qqnorm(ADA_USD_tidy$Volume)
+qqline(ADA_USD_tidy$Volume)
+
+qqnorm(BTC_USD_tidy$Volume)
+qqline(BTC_USD_tidy$Volume)
+
+qqnorm(DOT_USD_tidy$Volume)
+qqline(DOT_USD_tidy$Volume)
+
+qqnorm(ETH_USD_tidy$Volume)
+qqline(ETH_USD_tidy$Volume)
+
+qqnorm(SOL_USD_tidy$Volume)
+qqline(SOL_USD_tidy$Volume)
+
+```
+
+```{r}
+bc <- EnvStats::boxcox(ADA_USD_tidy$Volume, lambda=c(-2, 2), optimize=TRUE, objective.name='Log-Likelihood')
+bc_data <- EnvStats::boxcoxTransform(ADA_USD_tidy$Volume, bc$lambda)
+
+skewness(bc_data)
+
+```
+
+```{r}
+shapiro.test(bc_data)
+```
+
+```{r}
+qqnorm(bc_data)
+qqline(bc_data)
+```
+
+```{r}
+ADA_USD_tidy <- ADA_USD_tidy %>% mutate('Volumen' = bc_data)
+
+```
+
+```{r}
+stl_model = ADA_USD_tidy %>% dplyr::select(Volume) %>% stl(s.window = 'per')
+plot(stl_model,main = 'Descomposicón de la serie con STL')
+```
+
+
+```{r}
+train <- ADA_USD_tidy %>% select(Volume) %>% filter_index("1995 Jan" ~ "2023 Jun")
+test <- data %>% select(remesas_trn) %>% filter_index("2023 Jun" ~ "2023 Dec")
+tstng_prds <- 6
+frcst_prds <- 6
+```
+
+
+
+
