@@ -1,0 +1,287 @@
+---
+title: "Variables Predictorias"
+author: "Elena"
+date: "2024-02-12"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(tsibble)
+library(plotly)
+library(lubridate)
+library(readr)
+library(ggplot2)
+library(feasts)
+library(GGally)
+```
+
+El Bitcoin es una moneda electrónica que no está respaldada por un banco, un gobierno o algo material como lo es el oro, esto genera un desafío para el sistema financiero tradicional, sin embargo, la sociedad ha comenzado a invertir en bitcoins, esta moneda es altamente volátil, esto puede representar oportunidades o riesgos muy significativos para los inversionistas, también se considera una forma de diversificación, existe quien lo ve como una moneda fiduciaria en especial quien vive en regiones con problemas de inflación o inestabilidad financiera.
+
+El como se desarrolla el Bitcoin o las cripto monedas pronostica también un desarrollo tecnológico para el sistema financiero tradicional, y el comportamiento de la sociedad ante el como se utiliza el dinero, sus inversiones, o ahorros. Por esto veo importante pronosticar la volatilidad, así como el volumen histórico.
+
+Después de importar las librerías, voy a comenzar leyendo los archivos de criptomonedas para el "Análisis de eficiencia del mercado de Bitcoin".
+```{r}
+ADA_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/ADA-USD.csv')
+ADA_USD
+BTC_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/BTC-USD.csv')
+BTC_USD 
+DOGE_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/DOGE-USD.csv')
+DOGE_USD
+DOT_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/DOT-USD.csv')
+DOT_USD
+ETH_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/ETH-USD.csv')
+ETH_USD
+SOL_USD <- read_csv('C:/Users/luzma/OneDrive/Documentos/GitHub/Series-de-Tiempo/SOL-USD.csv')
+SOL_USD
+```
+
+
+```{r}
+ADA_USD_tidy <- ADA_USD %>%
+  as_tsibble(index = Date)
+ADA_USD_tidy
+
+BTC_USD_tidy <- BTC_USD %>%
+  as_tsibble(index = Date)
+BTC_USD_tidy
+
+DOGE_USD_tidy <- DOGE_USD %>%
+  as_tsibble(index = Date)
+DOGE_USD_tidy
+
+DOT_USD_tidy <- DOT_USD %>%
+  as_tsibble(index = Date)
+DOT_USD_tidy
+
+ETH_USD_tidy <- ETH_USD %>%
+  as_tsibble(index = Date)
+ETH_USD_tidy
+
+
+SOL_USD_tidy <- SOL_USD %>%
+  as_tsibble(index = Date)
+SOL_USD_tidy
+```
+
+
+Como unica variable predictora que voy a escoger es el volumen.
+
+```{r}
+ADA_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "ADA volume")
+
+
+BTC_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "BTC volume")
+
+DOT_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "DOT volume")
+
+ETH_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "ETH volume")
+
+
+SOL_USD_tidy %>%
+  autoplot(Volume) +
+  labs(y = "volume", title = "SOL volume")
+
+```
+Me quiero enfocar en la grafica del Volumen de BTC en el que en el año 2021 se puede observar una cantidad grande de volumen en comparación con otras fechas
+```{r}
+BTC_USD_tidy |>
+  pivot_longer(c(Volume, Close), names_to="Series") |>
+  autoplot(value) +
+  labs(y = "% change")
+```
+```{r}
+
+BTC_USD_tidy = fill_gaps(as_tsibble(BTC_USD_tidy, index = Date)) %>% fill(Volume, .direction= "up")
+BTC_USD_tidy
+```
+
+
+```{r}
+BTC_USD_tidy|>
+  ggplot(aes(x = Volume, y = `Close`)) +
+  labs(y = "Close",
+       x = "Volume") +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+Aquí se puede observar el punto en el que hay un valor super atipico y resalta mucho, estoy puede ser debido a la volatilidad de mercado en el que ese año de pandemia las personas solían invertir más en linea, así que hay mayor transacción, al ser bitcoin podría indicar un día de trading con una volatilidad excepcionalmente alta, o también puede ser un error de datos.
+
+```{r}
+BTC_USD_tidy |>
+  model(TSLM(Volume ~ Close)) |>
+  report()
+#> Series: Consumption 
+#> Model: TSLM 
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -2.5824 -0.2778  0.0186  0.3233  1.4223 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   0.5445     0.0540   10.08  < 2e-16 ***
+#> Income        0.2718     0.0467    5.82  2.4e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.591 on 196 degrees of freedom
+#> Multiple R-squared: 0.147,   Adjusted R-squared: 0.143
+#> F-statistic: 33.8 on 1 and 196 DF, p-value: 2.4e-08
+```
+
+
+```{r}
+BTC_USD_tidy |>
+  select(Close, Volume, Date) |>
+  pivot_longer(-Date) |>
+  ggplot(aes(Date, value, colour = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y") +
+  guides(colour = "none") +
+  labs(y="% change")
+```
+
+
+
+```{r}
+BTC_USD_tidy |>
+  GGally::ggpairs(columns = 2:7)
+```
+
+```{r}
+train <- BTC_USD_tidy %>% select(Volume) %>% filter_index("2019 Jan" ~ "2024 Jun")
+tstng_prds <- 6
+```
+
+
+```{r}
+library(fable)
+models_fit <- train %>% 
+    model(`Seasonal naive` = SNAIVE(Volume))
+models_tst <- models_fit %>% forecast(h = tstng_prds)
+snaive_plot <- models_tst %>% autoplot(filter_index(BTC_USD_tidy, "2024 Jan" ~ .)) +
+    ggtitle('Seasonal Naive') + ylab('Volume') + xlab('Date')
+
+snaive_plot
+```
+
+
+```{r}
+train %>% 
+  model(SNAIVE(Volume)) %>% 
+  gg_tsresiduals()
+```
+
+
+```{r}
+stl_model = BTC_USD_tidy %>% dplyr::select(Volume) %>% stl(s.window = 'per')
+plot(stl_model,main = 'Descomposicón de la serie con STL')
+```
+
+```{r}
+models_fit <- train %>% 
+  model(stlf = decomposition_model(
+    STL(Volume ~ trend(window = 12), robust = TRUE),
+    NAIVE(season_adjust)
+  ))
+models_tst <- models_fit %>% forecast(h = tstng_prds)
+mape_sn <- (models_fit %>% forecast(h = tstng_prds) %>% accuracy(test))$MAPE
+snaive_plot <- models_tst %>% autoplot(filter_index(BTC_USD_tidy, "2024 Jan" ~ .)) +
+    ggtitle('STL') + ylab('Volume') + xlab('Mes')
+
+snaive_plot
+
+```
+
+
+```{r}
+models_fit <- train %>% 
+  model(
+    `Seasonal naive` = SNAIVE(Volume),
+    stlf = decomposition_model(
+    STL(Volume ~ trend(window = 12), robust = TRUE),
+    NAIVE(season_adjust)),
+    log_stlf = decomposition_model(
+            STL(log(Volume) ~ trend(window = 12), robust = TRUE),
+            NAIVE(season_adjust))
+  )
+models_tst <- models_fit %>% forecast(h = tstng_prds)
+mape_sn <- (models_fit %>% forecast(h = tstng_prds) %>% accuracy(test))$MAPE
+snaive_plot <- models_tst %>% autoplot(filter_index(BTC_USD_tidy, "2024 Jan" ~ .), level = NULL) +
+    ggtitle('Diferentes modelos') + ylab('Volume') + xlab('Mes')
+
+snaive_plot
+```
+
+```{r}
+train %>% 
+  model(decomposition_model(
+            STL(log(Volume) ~ trend(window = 8), robust = TRUE),
+            NAIVE(season_adjust))) %>% 
+  gg_tsresiduals()
+```
+
+```{r}
+train_gdp = train_gdp %>% 
+  mutate(crisish = if_else(Date >= as.Date("2021-01-01") & Date <= as.Date("2021-03-31"),1,0),
+         crisisc = if_else(Date >= as.Date("2022-09-01") & Date <= as.Date("2022-12-31"),1,0))
+```
+
+
+El siguiente códgio muestra los rezagos = 1
+```{r}
+BTC_USD_tidy$lag1 = c(NA, BTC_USD_tidy$Volume[1:length(BTC_USD_tidy$Volume)-1])
+BTC_USD_tidy
+```
+
+
+```{r}
+fit_lm <- BTC_USD_tidy |>
+  model(tslm = TSLM(log(remesas) ~ trend() + season() + gdp + crisish + crisisc + fourier(K = 2)))
+
+report(fit_lm)
+```
+
+Ahora voy a leer los archivos para la segúnda serie de tiempo sobre: "Efectos de la vacuna del COVID en el mundo"
+
+Para esta serie de tiempo quiero concentrarme en la desigualdad y el impacto en la salud pública, evaluar la eficacia de las vacunas, la eficacia de las marcas, paises que fueron vacunados primero.
+
+Más que nada creo y me gustaría comprobar una disparidad en la distribución global de las vacunas esto principalmente puedo verlo en las fechas y cantidades de vacunas.
+
+Esto puede ser útil para el análisis de una nueva formulación de políticas de salud pública y asignación de recursos
+
+```{r}
+#vacunas_marca <- read_csv("ITESO/Series de Tiempo/archive/country_vaccinations_by_manufacturer.csv")
+#vacunas_marca
+
+#vacunas_pais <- read_csv("ITESO/Series de Tiempo/archive/country_vaccinations.csv")
+#vacunas_pais
+```
+
+```{r}
+#vacunas_marca_tidy %>%
+ # autoplot(total_vaccinations) +
+#labs(y = "total_vaccinations", title = "Marcas")
+
+#vacunas_pais_tidy %>%
+ # autoplot(total_vaccinations) +
+  #labs(y = "total_vaccinations", title = "Pais")
+
+
+```
+
+
+```{r}
+
+```
+
