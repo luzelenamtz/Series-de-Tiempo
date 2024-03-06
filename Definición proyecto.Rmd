@@ -1,0 +1,67 @@
+---
+title: "Definición Proyecto"
+author: "Elena"
+date: "2024-03-06"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(tsibble)
+library(plotly)
+library(lubridate)
+library(readr)
+
+```
+
+
+"Efectos de la vacuna del COVID en el mundo"
+
+Para esta serie de tiempo quiero concentrarme en la desigualdad y el impacto en la salud pública, evaluar la eficacia de las vacunas, la eficacia de las marcas, paises que fueron vacunados primero.
+
+Más que nada creo y me gustaría comprobar una disparidad en la distribución global de las vacunas esto principalmente puedo verlo en las fechas y cantidades de vacunas.
+
+Esto puede ser útil para el análisis de una nueva formulación de políticas de salud pública y asignación de recursos
+```{r}
+vacunas_marca <- read_csv("ITESO/Series de Tiempo/archive/country_vaccinations_by_manufacturer.csv")
+vacunas_marca
+
+vacunas_pais <- read_csv("ITESO/Series de Tiempo/archive/country_vaccinations.csv")
+vacunas_pais
+
+```
+```{r}
+# Identificar filas duplicadas basadas en 'key' e 'index'
+duplicados <- vacunas_marca %>%
+  count(total_vaccinations, date) %>%
+  filter(n > 1)
+
+# Si deseas ver cuáles son estas filas
+vacunas_marca %>%
+  filter(total_vaccinations %in% duplicados$total_vaccinations & date %in% duplicados$date)
+
+# Eliminar duplicados, conservando la primera entrada
+vacunas_marca <- vacunas_marca %>%
+  distinct(total_vaccinations, date, .keep_all = TRUE)
+
+# Intentar convertir de nuevo a tsibble
+vacunas_marca_tsibble <- vacunas_marca %>%
+  as_tsibble(index = date)
+
+```
+
+
+```{r}
+vacunas_pais_tidy <- vacunas_pais %>%
+  as_tsibble(index = date)
+vacunas_pais_tidy
+
+vacunas_marca_tidy %>%
+  autoplot(total_vaccinations) +
+  labs(y = "total_vaccinations", title = "Marcas")
+
+vacunas_pais_tidy %>%
+  autoplot(total_vaccinations) +
+  labs(y = "daily_vaccinations", title = "Pais")
+```
+
