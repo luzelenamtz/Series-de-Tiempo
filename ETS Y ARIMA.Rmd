@@ -1,0 +1,91 @@
+---
+title: "ETS Y ARIMA"
+author: "Elena"
+date: "2024-03-12"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(tidyquant)
+library(tsibble)
+library(plotly)
+library(lubridate)
+library(readr)
+library(ggplot2)
+library(feasts)
+library(GGally)
+library(forecast)
+library(fable)
+library(plotly)
+```
+
+```{r}
+btc_stock_prices <- tq_get("BTC-USD", from = "2022-01-01")  %>% drop_na()
+
+```
+
+```{r}
+btc_stock_tsibble = fill_gaps(as_tsibble(btc_stock_prices, index = date)) %>% fill(volume)
+```
+
+`
+```{r}
+
+fit <- btc_stock_tsibble %>%
+  model(uno = ETS(volume ~ error("A") + trend("N") + season("N")),
+        dos = ETS(volume))
+
+tidy(fit)
+fc <- forecast(fit, h = 5)
+fc
+```
+
+```{r}
+plot_lm = augment(fit) |>
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = volume, colour = "reales")) +
+  geom_line(aes(y = .fitted, colour = "ajustados")) +
+  labs(y = NULL,
+    title = "BTC-USD"
+  ) +
+  guides(colour = guide_legend(title = NULL))
+ggtitle(plot_lm)
+```
+
+```{r}
+accuracy(fit)
+```
+
+```{r}
+train <- fill_gaps(as_tsibble(btc_stock_prices, index = date)) %>% fill(volume)
+```
+
+```{r}
+train <- train %>% drop_na()
+train <- as_tsibble(btc_stock_tsibble)
+```
+
+```{r}
+train_filled <- train %>% fill_gaps()
+
+fit_arima <- train_filled %>% model(arima(log(close) ~ pdq(4,1,1) + PDQ(0,0,0)))
+```
+
+
+```{r}
+train %>% ACF(volume) %>% autoplot()
+```
+```{r}
+report(fit_arima)
+```
+```{r}
+train  %>% mutate(log= log(close))  %>% autoplot(log)
+```
+
+```{r}
+accuracy(fit_arima)
+```
+
+
