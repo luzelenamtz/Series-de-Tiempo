@@ -1,0 +1,96 @@
+---
+title: "Definición Proyecto"
+author: "Elena"
+date: "2024-03-06"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(tsibble)
+library(plotly)
+library(lubridate)
+library(readr)
+library(fable)
+library(ggplot2)
+library(feasts)
+```
+
+#Definición del problema y datos recabados
+"Efectos de la vacuna del COVID en el mundo"
+
+Para esta serie de tiempo voy a utilizar la columna "people_vaccinated_per_hundred" haciendo de cuenta que estoy en la fecha "2022-03-29" que es la última fecha de datos en la que México se encuentra con un 65% de personas vacunadas, voy a  pronosticar cuando este 65% llega a 100% de personas vacundas en México, tanto la información obtenida como el pronostico no son exactos, ya que se sabe que no toda la población está censada lo que afecta la realidad de la información. 
+```{r}
+#Importación a R
+
+setwd("C:/Users/luzma/OneDrive/Documentos/ITESO/Series de Tiempo/archive")
+
+vacunas_pais <- read_csv("country_vaccinations.csv")
+vacunas_pais
+
+```
+
+#Limpieza de Datos
+```{r}
+vacunas_pais = vacunas_pais %>% filter(country=="Mexico")
+vacunas_pais
+```
+
+```{r}
+vacunas_pais = vacunas_pais %>% select(date, people_vaccinated_per_hundred)
+vacunas_pais
+```
+
+```{r}
+vacunas_pais = vacunas_pais %>% filter(is.na(people_vaccinated_per_hundred)==FALSE)
+vacunas_pais = vacunas_pais %>% mutate(no = row_number())
+vacunas_pais
+```
+
+```{r}
+vacunas_pais_tidy <- vacunas_pais %>% as_tsibble(index = no)
+vacunas_pais_tidy
+
+vacunas_pais_tidy2 <- vacunas_pais %>% as_tsibble(index = date)
+vacunas_pais_tidy2
+```
+
+#Inspección visual de la serie con Gráficas:
+
+```{r}
+
+vacunas_pais_tidy2 %>%
+  autoplot(people_vaccinated_per_hundred) +
+  labs(y = "people_vaccinated (%)", x = "Date", title = "People Vaccinated per Hundred")
+
+```
+Se puede observar que el porcentaje de la población vacunada inicia muy lento en 2021, hasta que va avanzando de manera más rápida y termina avanzando lento de nuevo.
+
+
+#Tengo que corregir el sesgo y la varianza ?
+
+```{r}
+histogram = ggplot(vacunas_pais_tidy, aes(x = people_vaccinated_per_hundred)) +
+  geom_histogram( bins = 30, fill = "black", color = "black", alpha = 0.5) +
+  labs(title = "Histograma",
+       x = "Date 2020 to 2022",
+       y = "People_Vaccinated")
+
+ggplotly(histogram)
+```
+
+
+```{r}
+vacunas_pais_tidy <- vacunas_pais %>%
+  as_tsibble(index = date)
+vacunas_pais_tidy
+
+vacunas_marca_tidy %>%
+  autoplot(total_vaccinations) +
+  labs(y = "total_vaccinations", title = "Marcas")
+
+vacunas_pais_tidy %>%
+  autoplot(total_vaccinations) +
+  labs(y = "daily_vaccinations", title = "Pais")
+```
+
