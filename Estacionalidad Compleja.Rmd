@@ -1,0 +1,86 @@
+---
+title: "Practica Proyecto"
+author: "Elena"
+date: "2024-04-11"
+output: html_document
+---
+
+```{r}
+library(tidyquant)
+library(tidyverse)
+library(tsibble)
+library(fable)
+library(feasts)
+data = tq_get("^GSPC", get="stock.prices", from = "2022-01-01", to = "2024-03-28") %>% select(date, adjusted) %>% as_tsibble(index = date)
+
+```
+
+```{r}
+data
+```
+
+```{r}
+calls <- data |>
+  mutate(t = row_number()) |>
+  update_tsibble(index = t, regular = TRUE) %>% select(t, adjusted)
+calls
+```
+
+
+```{r}
+calls |>
+  model(
+    STL(adjusted ~ season(period = 5) + season(period = 20) + season(period = 252),
+        robust = TRUE)
+  ) |>
+  components() |>
+  autoplot() + labs(x = "Observation")
+
+```
+
+```{r}
+my_dcmp_spec <- decomposition_model(
+  STL(adjusted ~ season(period = 5) + season(period = 20) + season(period = 252),
+      robust = TRUE),
+  ETS(season_adjust ~ error("A") + trend("A") + season("N"))
+)
+fc <- calls |>
+  model(my_dcmp_spec) |>
+  forecast(h = 25)
+
+```
+
+# Con tendencia
+Decidí cambiar el código para ETS igual al de remesas con tendencia, y lo que me dí cuenta es que se ven más datos sin embargo sigue dando una tendencia a la baja y aparecieron más datos atípicos.
+ 
+```{r}
+plot = fc |>
+  fill_gaps() |>
+  autoplot(calls) +
+  labs(y="SP500",
+       title = "SP500")
+
+plot
+```
+
+
+```{r}
+fit3 <- calls %>% 
+  model(
+    harmonic = ARIMA(adjusted ~ trend() + fourier(period = 10, K = 5) + fourier(period = 25, K = 3) + fourier(period = 252, K = 10)))
+
+
+```
+
+```{r}
+fc <- fit3 %>%
+  forecast(h = 25)
+
+fc |>
+  fill_gaps() |>
+  autoplot(calls) +
+  labs(y = "SP500",
+       title = "SP500")
+```
+# Cambio en period y K
+En este caso experimente con cambiar los datos a "fourier(period = 10, K = 5) + fourier(period = 25, K = 3) + fourier(period = 252, K = 10)" y lo que observé es que se recorre mucho el pronóstico hacia abajo, ya se separa de los datos reales, y en vez de ser solo una curva se ve más movimiento en los datos pronósticados, creo que está muy lejos de ser un buen pronóstico.
