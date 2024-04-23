@@ -1,0 +1,143 @@
+---
+title: "Var"
+author: "Elena"
+date: "2024-04-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyquant)
+library(tidyverse)
+library(tsibble)
+library(fable)
+library(feasts)
+```
+
+
+```{r}
+data = tq_get(c("NVDA", "MSFT"), get = "stock.prices", from = "2023-01-01", to = "2024-03-29")%>% select(symbol, date, adjusted)
+```
+
+```{r}
+data = pivot_wider(data, id_cols = date, names_from = symbol, values_from = adjusted)
+data
+
+```
+
+```{r}
+data = mutate(data, t = row_number())
+data = as_tsibble(data, index = t)
+data
+
+```
+
+```{r}
+fit_var = data %>% model(var = VAR(vars(NVDA, MSFT)))
+```
+
+```{r}
+glance(fit_var)$sigma2
+```
+
+```{r}
+fit_var |>
+  augment() |>
+  ACF(.innov) |>
+  autoplot()
+
+```
+
+```{r}
+fit_var |>
+  forecast(h=20) |>
+  autoplot(data)
+```
+
+```{r}
+data = tq_get(c("NVDA", "MSFT"), get = "stock.prices", from = "2023-01-01", to = "2024-03-29")%>% select(symbol, date, adjusted)
+
+returns = data %>% group_by(symbol) %>% tq_transmute(select = adjusted,
+                mutate_fun = periodReturn,
+                period = "daily",
+                col_rename = "return")
+returns
+```
+
+```{r}
+returns = pivot_wider(returns, id_cols = date, names_from = symbol, values_from = return)
+returns
+```
+
+
+```{r}
+returns = mutate(returns, t = row_number())
+returns = as_tsibble(returns, index = t)
+returns
+```
+
+```{r}
+fit_var = returns %>% model(var = VAR(vars(NVDA, MSFT)))
+```
+
+```{r}
+glance(fit_var)$sigma2
+```
+
+```{r}
+fit_var |>
+  augment() |>
+  ACF(.innov) |>
+  autoplot()
+```
+
+```{r}
+fit_var |>
+  forecast(h=20) |>
+  autoplot(returns)
+```
+```{r}
+fit_var = returns  %>% model(var = VAR(vars(NVDA, MSFT)~AR(10)))
+```
+
+```{r}
+# Asumiendo que fit_var es tu modelo ajustado
+forecast_results <- forecast(fit_var, h=20)
+
+# Crear una tabla de los resultados del pronóstico
+forecast_table <- data.frame(
+  Time = time(forecast_results$mean),
+  Forecast = as.numeric(forecast_results$mean),
+  Lower80 = forecast_results$lower[,1],
+  Upper80 = forecast_results$upper[,1],
+  Lower95 = forecast_results$lower[,2],
+  Upper95 = forecast_results$upper[,2]
+)
+
+# Mostrar la tabla
+print(forecast_table)
+
+```
+
+
+```{r}
+forc = fit_var |>
+  forecast(h=20)
+forc
+```
+
+```{r}
+forc
+```
+
+```{r}
+ultimo_precio <- last(returns$MSFT)
+ultimo_precio
+```
+```{r}
+resultados <- forc %>% mutate(precio_pronosticado = ultimo_precio * (1+MSFT))
+```
+
